@@ -20,9 +20,9 @@ public class Person {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="person_id", insertable = false, updatable = false, nullable = false)
 	private UUID person_id;
-	@Column(name="username", nullable = false)
+	@Column(name="username", nullable = false , unique=true)
 	private String username;
-	@Column(name="email", nullable = false)
+	@Column(name="email", nullable = false , unique = true)
 	private String email;
 	@Column(name="password",nullable = false)
 	private String password;
