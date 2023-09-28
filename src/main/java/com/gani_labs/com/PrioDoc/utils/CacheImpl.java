@@ -1,6 +1,5 @@
 package com.gani_labs.com.PrioDoc.utils;
 
-import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 

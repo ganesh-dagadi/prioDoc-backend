@@ -35,7 +35,7 @@ public class DefaultCommunication implements Communications {
 	      System.out.println(response.getStatusCode());
 	      System.out.println(response.getBody());
 	      System.out.println(response.getHeaders());
-	      if(response.getStatusCode() == 200) return true;
+	      if(response.getStatusCode() == 200 || response.getStatusCode() == 202) return true;
 	      else return false;
 	    } catch (IOException ex) {
 	      return false;

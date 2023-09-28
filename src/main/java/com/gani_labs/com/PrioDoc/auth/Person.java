@@ -1,7 +1,6 @@
 package com.gani_labs.com.PrioDoc.auth;
 
 import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

@@ -1,17 +1,22 @@
 package com.gani_labs.com.PrioDoc.auth;
 
+import java.util.AbstractMap;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import com.gani_labs.com.PrioDoc.LoginRequest;
 import com.gani_labs.com.PrioDoc.utils.CacheIntr;
 import com.gani_labs.com.PrioDoc.utils.Communications;
+import com.gani_labs.com.PrioDoc.utils.CryptoIntr;
 import com.gani_labs.com.PrioDoc.utils.MailFormat;
+
 
 @Service
 public class DefaultAuthService implements AuthService{
+	
 	@Autowired
 	private UserRepository repo;
 	@Autowired
@@ -19,6 +24,8 @@ public class DefaultAuthService implements AuthService{
 	
 	@Autowired
 	private CacheIntr cache;
+	@Autowired
+	private CryptoIntr crypto;
 	@Override
 	public String hashPassword(String password) {
 		String pw_hash = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -55,6 +62,51 @@ public class DefaultAuthService implements AuthService{
 		Person foundPerson = repo.findByEmail(person.getEmail());
 		if(foundPerson != null) return "Email is already taken";
 		return null;
+	}
+	
+	@Override 
+	public AbstractMap.SimpleEntry<Boolean, String> validateOTP(String email , Integer otp){
+		Integer foundOTP = cache.getOTP(email);
+		if(foundOTP == -1) return new AbstractMap.SimpleEntry<Boolean , String>(false , "OTP might have expired");
+		System.out.println(foundOTP  + " " + otp);
+		if(foundOTP.equals(otp)) {
+			Person person = repo.findByEmail(email);
+			person.setActive(true);
+			person.setVerified(true);
+			repo.save(person);
+			return new AbstractMap.SimpleEntry<Boolean , String>(true , "Account has been verified");
+		}
+		else return new AbstractMap.SimpleEntry<Boolean , String>(false , "OTP is incorrect");
+	}
+	
+	@Override
+	public Boolean resendOTP(String email){
+		MailFormat mail = new MailFormat();
+		Random rand = new Random();
+		Integer otp = rand.nextInt(10000 , 99999);
+		cache.saveOTP(otp , email , 300);
+		mail.setTo(email);
+		mail.setBody("Your OTP to verify your account is : " + otp.toString());
+		mail.setSubject("Verify your account");
+		return comm.sendMail(mail);
+	}
+	
+	@Override 
+	public String validateLogin(String email , String password) {
+		if(email == null || password == null) return "Required parameters missing";
+		Person person = repo.findByEmail(email);
+		if(person == null) return "User with email not found";
+		return null;
+	}
+	
+	@Override
+	public AbstractMap.SimpleEntry<String, String> loginUser(String email , String password){
+		Person person = repo.findByEmail(email);
+		if(!BCrypt.checkpw(password , person.getPassword())){
+			return null;
+		}
+		
+		
 	}
 	
 }
