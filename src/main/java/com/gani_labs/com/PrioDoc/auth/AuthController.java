@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gani_labs.com.PrioDoc.LoginRequest;
+import com.gani_labs.com.PrioDoc.auth.DAO.LoginRequest;
 import com.gani_labs.com.PrioDoc.auth.DAO.ResendOTPRequest;
 import com.gani_labs.com.PrioDoc.auth.DAO.ValidateOTPRequest;
 
@@ -65,15 +65,21 @@ public class AuthController {
 	public ResponseEntity<Map<String , Object>>login(@RequestBody LoginRequest loginReq){
 		String validationFailedMsg = service.validateLogin(loginReq.getEmail() , loginReq.getPassword());
 		if(validationFailedMsg != null) {
-			System.out.print(validationFailedMsg);
 			BodyBuilder response= ResponseEntity.status(409);
 			Map<String , Object> m = new HashMap<>();
 			m.put("err", validationFailedMsg);
 			return response.body(m);
 		}
 		AbstractMap.SimpleEntry<String, String> tokens = service.loginUser(loginReq.getEmail() , loginReq.getPassword());
+		if(tokens == null) {
+			BodyBuilder response= ResponseEntity.status(409);
+			Map<String , Object> m = new HashMap<>();
+			m.put("err", "Password is incorrect");
+			return response.body(m);
+		}
 		Map<String , Object> m = new HashMap<>();
-		m.put("tokens", tokens);
+		m.put("access_token", tokens.getKey());
+		m.put("refresh_token", tokens.getValue());
 		return ResponseEntity.ok(m);
 	}
 }

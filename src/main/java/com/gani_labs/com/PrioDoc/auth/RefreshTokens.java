@@ -7,7 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 
 @Entity
 public class RefreshTokens {
@@ -15,9 +16,11 @@ public class RefreshTokens {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="token_id", insertable = false, updatable = false, nullable = false)
 	private UUID token_id;
-	@OneToOne
-	@Column(name="person_id", updatable = false, nullable = false)
+	
+	@ManyToOne
+	@PrimaryKeyJoinColumn()
 	private Person person_id;
+	
 	@Column(name="token", updatable = false, nullable = false)
 	private String token;
 	public UUID getToken_id() {

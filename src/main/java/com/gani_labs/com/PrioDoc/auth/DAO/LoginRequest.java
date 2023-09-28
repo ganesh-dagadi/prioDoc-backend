@@ -1,4 +1,4 @@
-package com.gani_labs.com.PrioDoc;
+package com.gani_labs.com.PrioDoc.auth.DAO;
 
 public class LoginRequest {
 	private String email;

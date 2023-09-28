@@ -2,7 +2,7 @@ package com.gani_labs.com.PrioDoc.auth;
 
 import java.util.AbstractMap;
 
-import com.gani_labs.com.PrioDoc.LoginRequest;
+import com.gani_labs.com.PrioDoc.auth.DAO.LoginRequest;
 
 public interface AuthService {
 	public String hashPassword(String passeord);

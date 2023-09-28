@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import com.gani_labs.com.PrioDoc.LoginRequest;
 import com.gani_labs.com.PrioDoc.utils.CacheIntr;
 import com.gani_labs.com.PrioDoc.utils.Communications;
 import com.gani_labs.com.PrioDoc.utils.CryptoIntr;
@@ -18,7 +17,11 @@ import com.gani_labs.com.PrioDoc.utils.MailFormat;
 public class DefaultAuthService implements AuthService{
 	
 	@Autowired
-	private UserRepository repo;
+	private UserRepository userRepo;
+	
+	
+	@Autowired
+	private RefreshTokenRepository refreshRepo;
 	@Autowired
 	private Communications comm;
 	
@@ -35,7 +38,7 @@ public class DefaultAuthService implements AuthService{
 	@Override
 	public Person createPerson(Person person) {
 		try {
-			Person personSaved = repo.save(person);
+			Person personSaved = userRepo.save(person);
 			return personSaved;
 		}catch(Exception err) {
 			return null;
@@ -59,7 +62,7 @@ public class DefaultAuthService implements AuthService{
 		if(person.getEmail() == null) return "Email missing";
 		if(person.getPassword() == null) return "password missing";
 		if(person.getUsername() == null) return "username missing";
-		Person foundPerson = repo.findByEmail(person.getEmail());
+		Person foundPerson = userRepo.findByEmail(person.getEmail());
 		if(foundPerson != null) return "Email is already taken";
 		return null;
 	}
@@ -70,10 +73,10 @@ public class DefaultAuthService implements AuthService{
 		if(foundOTP == -1) return new AbstractMap.SimpleEntry<Boolean , String>(false , "OTP might have expired");
 		System.out.println(foundOTP  + " " + otp);
 		if(foundOTP.equals(otp)) {
-			Person person = repo.findByEmail(email);
+			Person person = userRepo.findByEmail(email);
 			person.setActive(true);
 			person.setVerified(true);
-			repo.save(person);
+			userRepo.save(person);
 			return new AbstractMap.SimpleEntry<Boolean , String>(true , "Account has been verified");
 		}
 		else return new AbstractMap.SimpleEntry<Boolean , String>(false , "OTP is incorrect");
@@ -94,19 +97,24 @@ public class DefaultAuthService implements AuthService{
 	@Override 
 	public String validateLogin(String email , String password) {
 		if(email == null || password == null) return "Required parameters missing";
-		Person person = repo.findByEmail(email);
+		Person person = userRepo.findByEmail(email);
 		if(person == null) return "User with email not found";
 		return null;
 	}
 	
 	@Override
 	public AbstractMap.SimpleEntry<String, String> loginUser(String email , String password){
-		Person person = repo.findByEmail(email);
+		Person person = userRepo.findByEmail(email);
 		if(!BCrypt.checkpw(password , person.getPassword())){
 			return null;
 		}
-		
-		
+		String accessToken = crypto.generateJWT("user_id" , person.getPerson_id().toString(),true , true , 1200);
+		String refreshToken = crypto.generateJWT("user_id", person.getPerson_id().toString(), false , false , 0);
+		RefreshTokens refreshInst = new RefreshTokens();
+		refreshInst.setPerson_id(person);
+		refreshInst.setToken(refreshToken);
+		refreshRepo.save(refreshInst);
+		return new AbstractMap.SimpleEntry<String, String>(accessToken , refreshToken);
 	}
 	
 }
