@@ -1,6 +1,7 @@
 package com.gani_labs.com.PrioDoc.auth;
 
 import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import com.gani_labs.com.PrioDoc.utils.CacheIntr;
 import com.gani_labs.com.PrioDoc.utils.Communications;
 import com.gani_labs.com.PrioDoc.utils.CryptoIntr;
 import com.gani_labs.com.PrioDoc.utils.MailFormat;
+
+import jakarta.transaction.Transactional;
 
 
 @Service
@@ -110,11 +113,32 @@ public class DefaultAuthService implements AuthService{
 		}
 		String accessToken = crypto.generateJWT("user_id" , person.getPerson_id().toString(),true , true , 1200);
 		String refreshToken = crypto.generateJWT("user_id", person.getPerson_id().toString(), false , false , 0);
-		RefreshTokens refreshInst = new RefreshTokens();
+		RefreshToken refreshInst = new RefreshToken();
 		refreshInst.setPerson_id(person);
 		refreshInst.setToken(refreshToken);
 		refreshRepo.save(refreshInst);
 		return new AbstractMap.SimpleEntry<String, String>(accessToken , refreshToken);
 	}
-	
+
+	@Override
+	public SimpleEntry<Boolean, String> refreshToken(String authHeader) {
+		authHeader = authHeader.substring(7);
+		RefreshToken refreshToken = refreshRepo.findByToken(authHeader);
+		if(refreshToken == null) return new SimpleEntry<>(false , "Not logged in");
+		String accessToken = crypto.generateJWT("user_id" , refreshToken.getPerson_id().getPerson_id().toString() , true , true , 1200);
+		return new SimpleEntry<>(true , accessToken);
+	}
+
+	@Override
+	@Transactional
+	public SimpleEntry<Boolean, String> logout(String authHeader) {
+		authHeader = authHeader.substring(7);
+
+		long numDeleted = refreshRepo.deleteByToken(authHeader);
+		if(numDeleted == 0) {
+			return new SimpleEntry<>(false , "Already logged out");
+		}else {
+			return new SimpleEntry<>(true , "Logged out");
+		}
+	}	
 }

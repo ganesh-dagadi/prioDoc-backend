@@ -34,7 +34,7 @@ public class Person {
 	private boolean isVerified = false;
 	
 	@OneToMany(mappedBy = "person_id")
-	private List<RefreshTokens> refreshToken;
+	private List<RefreshToken> refreshToken;
 	public boolean isActive() {
 		return isActive;
 	}

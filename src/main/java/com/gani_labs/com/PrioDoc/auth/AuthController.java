@@ -7,9 +7,11 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,5 +83,46 @@ public class AuthController {
 		m.put("access_token", tokens.getKey());
 		m.put("refresh_token", tokens.getValue());
 		return ResponseEntity.ok(m);
+	}
+	
+	@PatchMapping("/refreshtoken")
+	public ResponseEntity<Map<String , Object>> refreshToken(@RequestHeader(value = "Authorization") String authHeader){
+		
+		if(authHeader.isBlank()) {
+			Map<String , Object>m = new HashMap<>();
+			m.put("err", "No token provided");
+			return ResponseEntity.status(400).body(m);
+		}
+		AbstractMap.SimpleEntry<Boolean , String> token = service.refreshToken(authHeader);
+		if(token.getKey()) {
+			//successful refresh
+			Map<String , Object>m = new HashMap<>();
+			m.put("token",token.getValue());
+			return ResponseEntity.status(200).body(m);
+		}else {
+			Map<String , Object>m = new HashMap<>();
+			m.put("err",token.getValue());
+			return ResponseEntity.status(403).body(m);
+		}
+	}
+	
+	@GetMapping("/logout")
+	public ResponseEntity<Map<String , Object>> logout (@RequestHeader(value="Authorization") String authHeader){
+		if(authHeader.isBlank()) {
+			Map<String , Object>m = new HashMap<>();
+			m.put("err", "No token provided");
+			return ResponseEntity.status(400).body(m);
+		}
+		AbstractMap.SimpleEntry<Boolean , String> response = service.logout(authHeader);
+		if(response.getKey()) {
+			//successful refresh
+			Map<String , Object>m = new HashMap<>();
+			m.put("token",response.getValue());
+			return ResponseEntity.status(200).body(m);
+		}else {
+			Map<String , Object>m = new HashMap<>();
+			m.put("err",response.getValue());
+			return ResponseEntity.status(403).body(m);
+		}
 	}
 }

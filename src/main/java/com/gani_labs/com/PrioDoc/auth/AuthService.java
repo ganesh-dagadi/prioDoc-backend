@@ -5,7 +5,7 @@ import java.util.AbstractMap;
 import com.gani_labs.com.PrioDoc.auth.DAO.LoginRequest;
 
 public interface AuthService {
-	public String hashPassword(String passeord);
+	public String hashPassword(String password);
 	public Person createPerson(Person person);
 	public boolean emailVerificationSendOTP(String email);
 	public String validateRegister(Person person);
@@ -13,4 +13,6 @@ public interface AuthService {
 	public Boolean resendOTP(String email);
 	public String validateLogin(String email , String password);
 	public AbstractMap.SimpleEntry<String, String> loginUser(String email , String password);
+	public AbstractMap.SimpleEntry<Boolean, String> refreshToken(String authHeader);
+	public AbstractMap.SimpleEntry<Boolean, String> logout(String authHeader);
 }

@@ -11,7 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 
 @Entity
-public class RefreshTokens {
+public class RefreshToken {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="token_id", insertable = false, updatable = false, nullable = false)
