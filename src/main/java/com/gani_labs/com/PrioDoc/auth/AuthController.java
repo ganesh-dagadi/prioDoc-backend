@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gani_labs.com.PrioDoc.auth.DAO.LoginRequest;
 import com.gani_labs.com.PrioDoc.auth.DAO.ResendOTPRequest;
 import com.gani_labs.com.PrioDoc.auth.DAO.ValidateOTPRequest;
+import com.gani_labs.com.PrioDoc.utils.MiddlewareIntr;
 
 @RestController
 @RequestMapping("/auth")
@@ -25,6 +26,9 @@ public class AuthController {
 	
 	@Autowired
 	AuthService service;
+	
+	@Autowired 
+	MiddlewareIntr middle;
 	
 	@PostMapping("/register")
 	public ResponseEntity<Map<String, Object>> register(@RequestBody Person person) {
@@ -124,5 +128,11 @@ public class AuthController {
 			m.put("err",response.getValue());
 			return ResponseEntity.status(403).body(m);
 		}
+	}
+	
+	@GetMapping("/protected")
+	public ResponseEntity<String> protectedResource(@RequestHeader(value="Authorization") String authHeader){
+		middle.authenticateRequest(authHeader.substring(7));
+		return ResponseEntity.ok("success");
 	}
 }

@@ -1,13 +1,15 @@
 package com.gani_labs.com.PrioDoc.utils;
 
 import java.time.Instant;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 @Component
 public class CryptoImpl implements CryptoIntr {
@@ -27,7 +29,7 @@ public class CryptoImpl implements CryptoIntr {
 				jwtAlgo = Algorithm.HMAC256(JWT_REFRESH_SECRET);
 			}
 			Instant expires = Instant.now();
-			expires.plusSeconds(expiresIn);
+			expires = expires.plusSeconds(expiresIn);
 			
 			String token;
 			if(willExpire) {
@@ -49,7 +51,22 @@ public class CryptoImpl implements CryptoIntr {
 	}
 	
 	@Override
-	public void decodeJWT(String token , Boolean isAccess){
+	public String decodeJWT(String token , String key){
+		Algorithm jwtAlgo = Algorithm.HMAC256(JWT_ACCESS_SECRET);
+		try {
+			DecodedJWT decoded = JWT.require(jwtAlgo).build().verify(token);
+			System.out.println(decoded.getClaim(key));
+			return decoded.getClaim(key).toString();
+		}catch(TokenExpiredException e) {
+			System.out.println("token expired");
+			return null;
+		}catch(SignatureVerificationException e) {
+			System.out.println("Invalid signature");
+			return null;
+		}catch(Exception e) {
+			System.out.println("SOmething else");
+			return null;
+		}
 		
 	}
 }
